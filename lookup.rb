@@ -12,7 +12,7 @@ path_work = 'work.loc.csv'
 
 path_out = "result.csv"
 
-STD_HASTIGHED = 15.5    # fra cykelsekretariatet
+STD_HASTIGHED = 16.4    # fra cykelsekretariatet
 
 if File.exists? path_out
   puts "#{path_out} already exits."
