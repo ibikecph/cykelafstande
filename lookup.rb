@@ -12,7 +12,7 @@ class Lookup
   def route from,to,out_file, n, direction
     a = "#{from[4]},#{from[3]}"
     b = "#{to[4]},#{to[3]}"
-    uri = URI.parse "#{SERVER}/route/v1/fast/#{a};#{b}?geometries=geojson&overview=full"
+    uri = URI.parse "#{SERVER}/route/v1/fast/#{a};#{b}"
     response = Net::HTTP.get uri
     json = JSON.parse response
 
@@ -44,7 +44,6 @@ class Lookup
           ].flatten.join(',')+"\n"
     #print '.'
 
-    @geometries << JSON.generate(route["geometry"])
     @distance_sum = @distance_sum + distance
     return str
   end
@@ -76,57 +75,22 @@ class Lookup
     end
 
 
-    #out_file.write "id, retning, from address,from nr, from zip, from lon, from lat, to address,to nr, to zip, to lon, to lat, kode, afstand, tid, hastighed, tid (standardhastighed)\n"
-    #n = 0
-    #print "Calculating #{2 * homes.length * works.length} routes..."
-    #homes.each do |home|
-    #  works.each do |work|
-    #    out_file.write route(home,work,out_file, n, 'hjem > arbejde')
-    #    n = n + 1
-    #    out_file.write route(work,home,out_file, n, 'arbejde > hjem')
-    #    n = n + 1
-    #  end
-    #end
+    out_file.write "id, retning, from address,from nr, from zip, from lon, from lat, to address,to nr, to zip, to lon, to lat, kode, afstand, tid, hastighed, tid (standardhastighed)\n"
 
     n = 0
-    @geometries = []
+    print "Calculating #{2 * homes.length * works.length} routes..."
     homes.each do |home|
       works.each do |work|
-        route(home,work,out_file, n, 'hjem > arbejde')
+        out_file.write route(home,work,out_file, n, 'hjem > arbejde')
         n = n + 1
-        route(work,home,out_file, n, 'arbejde > hjem')
+        out_file.write route(work,home,out_file, n, 'arbejde > hjem')
         n = n + 1
       end
     end
 
-    @geometries.map! do |geometry|
-      <<-EOF
-        {
-          "type": "Feature",
-          "properties": {
-            "stroke": "#f00",
-            "stroke-width": 3,
-            "stroke-opacity": 0.3
-          },
-          "geometry": #{geometry}
-        }
-    EOF
-    end
-
-    geojson = <<-EOF
-      {
-        "type": "FeatureCollection",
-        "features": [
-          #{@geometries.join(',')}
-        ]
-      }
-    EOF
-
-    print geojson
-
-    #puts
-    #puts "Distance sum: #{@distance_sum}"
-    #puts 'Done'
+    puts
+    puts "Distance sum: #{@distance_sum}"
+    puts 'Done'
   end
 
 end
